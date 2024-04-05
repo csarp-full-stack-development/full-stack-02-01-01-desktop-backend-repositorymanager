@@ -6,7 +6,7 @@ namespace Kreta.Backend.Repos
     public class SchoolClassRepo<TDbContext> : RepositoryBase<TDbContext, SchoolClass>, ISchoolClassRepo
         where TDbContext : DbContext
     {
-        public SchoolClassRepo(IDbContextFactory<TDbContext> dbContextFactory) : base(dbContextFactory)
+        public SchoolClassRepo(TDbContext? dbContext) : base(dbContext)
         {
         }
 

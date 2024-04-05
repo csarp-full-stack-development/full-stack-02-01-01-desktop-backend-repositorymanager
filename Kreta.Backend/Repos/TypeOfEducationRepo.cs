@@ -6,7 +6,7 @@ namespace Kreta.Backend.Repos
     public class TypeOfEducationRepo<TDbContext> : RepositoryBase<TDbContext, TypeOfEducation>, ITypeOfEducationRepo
         where TDbContext : DbContext
     {
-        public TypeOfEducationRepo(IDbContextFactory<TDbContext> dbContextFactory) : base(dbContextFactory)
+        public TypeOfEducationRepo(TDbContext? dbContext) : base(dbContext)
         {
         }
         public IQueryable<TypeOfEducation> SelectAllIncluded()
