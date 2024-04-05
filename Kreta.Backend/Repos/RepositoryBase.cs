@@ -9,17 +9,13 @@ namespace Kreta.Backend.Repos
         where TDbContext : DbContext
         where TEntity : class, IDbEntity<TEntity>, new()
     {
-        private readonly IDbContextFactory<TDbContext> _dbContextFactory;
-        private readonly DbContext _dbContext;
+        private readonly DbContext? _dbContext;
         private readonly DbSet<TEntity>? _dbSet;
 
-        public RepositoryBase(IDbContextFactory<TDbContext> dbContextFactory)
+        public RepositoryBase(TDbContext? dbContext)
         {
-            _dbContextFactory = dbContextFactory;
-            TDbContext dbContext = _dbContextFactory.CreateDbContext();
             _dbContext = dbContext;
-            // Itt megkapjuk az adatábzis táblát
-            _dbSet = dbContext.Set<TEntity>();
+            _dbSet = _dbContext?.Set<TEntity>() ?? throw new ArgumentException($"A {nameof(TEntity)} adatbázis tábla nem elérhető!");
         }
         public IQueryable<TEntity> FindAll()
         {
@@ -42,18 +38,21 @@ namespace Kreta.Backend.Repos
             ControllerResponse response = new ();
             try
             {
-                _dbContext.ChangeTracker.Clear();
-                _dbContext.Entry(entity).State = EntityState.Modified;
-                await _dbContext.SaveChangesAsync();
-                response.Id = entity.Id;
+                if (_dbContext is not null)
+                {
+                    _dbContext.ChangeTracker.Clear();
+                    _dbContext.Entry(entity).State = EntityState.Modified;
+                    await _dbContext.SaveChangesAsync();
+                    response.Id = entity.Id;
+                    return response;
+                }
             }
             catch (Exception e)
             {
                 response.AppendNewError(e.Message);
-                response.AppendNewError($"{nameof(RepositoryBase<TDbContext, TEntity>)} osztály, {nameof(UpdateAsync)} metódusban hiba keletkezett");
-                response.AppendNewError($"{entity} frissítése nem sikerült!");
-
             }
+            response.AppendNewError($"{nameof(RepositoryBase<TDbContext, TEntity>)} osztály, {nameof(UpdateAsync)} metódusban hiba keletkezett");
+            response.AppendNewError($"{entity} frissítése nem sikerült!");
             return response;
         }
         public async Task<ControllerResponse> DeleteAsync(Guid id)
@@ -72,23 +71,24 @@ namespace Kreta.Backend.Repos
             {
                 try
                 {
-                    if (entityToDelete is not null)
+                    if (entityToDelete is not null && _dbContext is not null)
                     {
                         _dbContext.ChangeTracker.Clear();
                         _dbContext.Entry(entityToDelete).State = EntityState.Deleted;
                         await _dbContext.SaveChangesAsync();
                         response.Id = entityToDelete.Id;
+                        return response;
                     }
                 }
                 catch (Exception e)
                 {
                     response.AppendNewError(e.Message);
-                    response.AppendNewError($"{nameof(RepositoryBase<TDbContext, TEntity>)} osztály, {nameof(DeleteAsync)} metódusban hiba keletkezett");
-                    if (entityToDelete is not null)
-                        response.AppendNewError($"Az entitás id:{entityToDelete.Id}");
-                    response.AppendNewError($"Az entitás törlése nem sikerült!");
                 }
             }
+            response.AppendNewError($"{nameof(RepositoryBase<TDbContext, TEntity>)} osztály, {nameof(DeleteAsync)} metódusban hiba keletkezett");
+            if (entityToDelete is not null)
+                response.AppendNewError($"Az entitás id:{entityToDelete.Id}");
+            response.AppendNewError($"Az entitás törlése nem sikerült!");
             return response;
         }
         public async Task<ControllerResponse> CreateAsync(TEntity entity)
@@ -102,17 +102,21 @@ namespace Kreta.Backend.Repos
             {
                 try
                 {
-                    _dbSet.Add(entity);
-                    await _dbContext.SaveChangesAsync();
-                    response.Id= entity.Id;
+                    if (_dbContext is not null)
+                    {
+                        _dbSet.Add(entity);
+                        await _dbContext.SaveChangesAsync();
+                        response.Id = entity.Id;
+                        return response;
+                    }
                 }
                 catch (Exception e)
                 {
                     response.AppendNewError(e.Message);
-                    response.AppendNewError($"{nameof(RepositoryBase<TDbContext, TEntity>)} osztály, {nameof(CreateAsync)} metódusban hiba keletkezett");
-                    response.AppendNewError($"{entity} osztály hozzáadása az adatbázishoz nem sikerült!");
                 }
             }
+            response.AppendNewError($"{nameof(RepositoryBase<TDbContext, TEntity>)} osztály, {nameof(CreateAsync)} metódusban hiba keletkezett");
+            response.AppendNewError($"{entity} osztály hozzáadása az adatbázishoz nem sikerült!");
             return response;
         }
 
