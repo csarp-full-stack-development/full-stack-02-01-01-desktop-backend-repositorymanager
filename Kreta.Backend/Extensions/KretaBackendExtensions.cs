@@ -37,18 +37,16 @@ namespace Kreta.Backend.Extensions
 
         public static void ConfigureRepoService(this IServiceCollection services)
         {
-            services.AddScoped<IStudentRepo, StudentInMemoryRepo>();
-            services.AddScoped<IGradeRepo, GradeInMemoryRepo>();
-            services.AddScoped<IParentRepo, ParentInMemoryRepo>();
-            services.AddScoped<ITeacherRepo, TeacherInMemoryRepo>();
-            services.AddScoped<ISubjectRepo, SubjectInMemoryRepo>();
-            services.AddScoped<ISubjectTypeRepo, SubjectTypeInMemoryRepo>();
-            services.AddScoped<IEducationLevelRepo, EducationLevelInMemoryRepo>();
-            services.AddScoped<IAddressRepo, AddressInMemoryRepo>();
-            services.AddScoped<IPublicSpaceRepo,PublicScpaceInMemoryRepo>();
-            services.AddScoped<ISchoolClassRepo, SchoolClassInMemoryRepo>();
-            services.AddScoped<ITypeOfEducationRepo,TypeOfEducationInMemoryRepo>();
-            
+            services.AddScoped<ITeacherRepo, TeacherRepo<KretaInMemoryContext>>();
+            services.AddScoped<IGradeRepo, GradeRepo<KretaInMemoryContext>>();
+            services.AddScoped<IParentRepo, ParentRepo<KretaInMemoryContext>>();
+            services.AddScoped<IStudentRepo, StudentRepo<KretaInMemoryContext>>();
+            services.AddScoped<ISubjectRepo, SubjectRepo<KretaInMemoryContext>>();
+            services.AddScoped<IEducationLevelRepo, EducationLevelRepo<KretaInMemoryContext>>();
+            services.AddScoped<ISchoolClassRepo, SchoolClassRepo<KretaInMemoryContext>>();
+            services.AddScoped<IAddressRepo, AddressRepo<KretaInMemoryContext>>();
+            services.AddScoped<IPublicSpaceRepo, PublicSpaceRepo<KretaInMemoryContext>>();
+            services.AddScoped<ITypeOfEducationRepo, TypeOfEducationRepo<KretaInMemoryContext>>();
         }
 
         public static void ConfigureAssamblers(this IServiceCollection services)
